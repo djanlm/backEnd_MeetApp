@@ -3,10 +3,12 @@ import Sequelize from 'sequelize';
 
 // importa os models
 import User from '../app/models/User';
+import File from '../app/models/File';
+import Meetup from '../app/models/Meetup';
 
 import databaseConfig from '../config/database';
 
-const models = [User]; // array com os models
+const models = [User, File, Meetup]; // array com os models
 
 class Database {
   constructor() {
@@ -15,7 +17,9 @@ class Database {
 
   init() {
     this.connection = new Sequelize(databaseConfig);
-    models.map(model => model.init(this.connection));
+    models
+      .map(model => model.init(this.connection))
+      .map(model => model.associate && model.associate(this.connection.models)); // somente os models que possuem o método associate
   }
 }
 

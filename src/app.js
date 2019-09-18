@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import routes from './routes';
 
 import './database'; // pega o index.js automaticamente
@@ -13,6 +14,10 @@ class App {
 
   middlewares() {
     this.server.use(express.json());
+    this.server.use(
+      '/files',
+      express.static(path.resolve(__dirname, '..', 'tmp', 'uploads'))
+    ); // expres static serve pra mostrar arquivos como os de imagens.
   }
 
   routes() {
