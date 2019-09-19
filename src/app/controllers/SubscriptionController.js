@@ -1,10 +1,35 @@
+import { Op } from 'sequelize';
 import Subscription from '../models/Subscription';
 import Meetup from '../models/Meetup';
-
-import Mail from '../../lib/Mail';
 import User from '../models/User';
 
+import Queue from '../../lib/Queue';
+import SubscriptionMail from '../jobs/SubscriptionMail';
+
 class SubscriptionController {
+  async index(req, res) {
+    const subscriptions = await Subscription.findAll({
+      where: {
+        user_id: req.userId,
+      },
+      attributes: [],
+      include: [
+        {
+          model: Meetup,
+          where: {
+            date: {
+              [Op.gt]: new Date(), // greater than (gt), somente datas que ainda não passaram
+            },
+          },
+          required: true,
+        },
+      ],
+      order: [[Meetup, 'date']],
+    });
+
+    return res.json(subscriptions);
+  }
+
   async store(req, res) {
     const meetup = await Meetup.findByPk(req.params.meetup_id);
 
@@ -50,11 +75,9 @@ class SubscriptionController {
       meetup_id: meetup.id,
     });
 
-    await Mail.sendMail({
-      to: `${host.name} <${host.email}>`,
-      subject: 'New user registered in the meetup',
-      text: `Name: ${user.name},
-      Email: ${user.email}`,
+    await Queue.add(SubscriptionMail.key, {
+      user,
+      host,
     });
 
     return res.json({ subscription });

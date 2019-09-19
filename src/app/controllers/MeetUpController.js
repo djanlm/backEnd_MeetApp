@@ -1,11 +1,40 @@
-import * as Yup from 'yup';
-import { startOfHour, parseISO, isBefore } from 'date-fns';
-
+import * as Yup from 'yup'; // it is used for validation
+import {
+  startOfHour,
+  parseISO,
+  isBefore,
+  startOfDay,
+  endOfDay,
+} from 'date-fns';
+import { Op } from 'sequelize';
 import Meetup from '../models/Meetup';
 import User from '../models/User';
 import File from '../models/File';
 
 class MeetUpController {
+  async index(req, res) {
+    const page = req.query.page || 1; // caso a pagina não seja informada ela será considerada igual a 1
+    const searchDate = parseISO(req.query.date); // tranforma a data para o formato certo
+    const meetups = await Meetup.findAll({
+      where: {
+        date: {
+          [Op.between]: [startOfDay(searchDate), endOfDay(searchDate)],
+        },
+      },
+      limit: 10,
+      offset: 10 * page - 10,
+      // o include é usado quando queremos trazer dados de tabelas relacionadas, nesse caso o user id é chave estrangeira da tabela de meetups
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name', 'email'],
+        },
+      ],
+    });
+    return res.json(meetups);
+  }
+
   async store(req, res) {
     const schema = Yup.object().shape({
       title: Yup.string().required(),
