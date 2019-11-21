@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import cors from 'cors'; // INSTALAR O CORS PRA QUE O FRONTEND CONSIGA SE COMUNICAR COM API DAQUI
 import routes from './routes';
 
 import './database'; // pega o index.js automaticamente
@@ -13,6 +14,7 @@ class App {
   }
 
   middlewares() {
+    this.server.use(cors());
     this.server.use(express.json());
     this.server.use(
       '/files',

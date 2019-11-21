@@ -2,6 +2,7 @@ import { Op } from 'sequelize';
 import Subscription from '../models/Subscription';
 import Meetup from '../models/Meetup';
 import User from '../models/User';
+import File from '../models/File';
 
 import Queue from '../../lib/Queue';
 import SubscriptionMail from '../jobs/SubscriptionMail';
@@ -22,6 +23,18 @@ class SubscriptionController {
             },
           },
           required: true,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['name', 'email'],
+            },
+            {
+              model: File,
+              as: 'banner',
+              attributes: ['id', 'url', 'path'],
+            },
+          ],
         },
       ],
       order: [[Meetup, 'date']],
@@ -34,9 +47,9 @@ class SubscriptionController {
     const meetup = await Meetup.findByPk(req.params.meetup_id);
 
     if (meetup.user_id === req.userId) {
-      return res
-        .status(400)
-        .json({ error: 'You cannot subscribe in this meetup' });
+      return res.status(400).json({
+        error: 'You cannot subscribe in this meetup because you are the host',
+      });
     }
 
     if (meetup.past) {

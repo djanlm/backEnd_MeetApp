@@ -30,6 +30,11 @@ class MeetUpController {
           as: 'user',
           attributes: ['name', 'email'],
         },
+        {
+          model: File,
+          as: 'banner',
+          attributes: ['id', 'url', 'path'],
+        },
       ],
     });
     return res.json(meetups);
@@ -128,6 +133,7 @@ class MeetUpController {
       description,
       location,
       file_id,
+      date,
     });
   }
 
