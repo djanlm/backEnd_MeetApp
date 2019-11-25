@@ -13,7 +13,7 @@ class SubscriptionController {
       where: {
         user_id: req.userId,
       },
-      attributes: [],
+      attributes: ['id'],
       include: [
         {
           model: Meetup,
@@ -94,6 +94,22 @@ class SubscriptionController {
     });
 
     return res.json({ subscription });
+  }
+
+  async delete(req, res) {
+    const subscription = await Subscription.findOne({
+      where: { id: req.params.id },
+    });
+
+    if (subscription.user_id !== req.userId) {
+      return res
+        .status(400)
+        .json({ error: 'Not authorized to delete this subscription.' });
+    }
+
+    await subscription.destroy();
+
+    return res.json({ Message: 'Subscription deleted.' });
   }
 }
 
